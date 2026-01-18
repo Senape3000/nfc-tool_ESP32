@@ -14,6 +14,7 @@
 - [Build & Flash (PlatformIO)](#build--flash-platformio)
 - [Quick Usage](#quick-usage)
 - [Runtime Data (LittleFS)](#runtime-data-littlefs)
+- [ToDo](#ToDo)
 - [Security Notes](#security-notes)
 
 ## Overview
@@ -84,6 +85,12 @@ It uses **LittleFS** to store tag dumps, Wi‑Fi credentials, and key databases,
   - `/wifi_db.json`. 
 - Mifare keys database:
   - `/mifare_keys.txt`. 
+
+## ToDo
+- Better docs for wiring, compiling, rebuild web-files.h
+- Port project to Esp32-MINI-D1
+- Data Parser
+- Upgrade AP Mode in Settings
 
 ## Security Notes
 
