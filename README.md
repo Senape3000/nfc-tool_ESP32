@@ -55,6 +55,9 @@ It uses **LittleFS** to store tag dumps, Wi‑Fi credentials, and key databases,
 
 - Optional IRQ = **GPIO 18**, RST = **GPIO 19** (when using hardware IRQ mode).
 
+### Wiring schematic
+
+[ESP32 DevKit V1 (or similar)](https://github.com/Senape3000/nfc-tool_ESP32/blob/main/docs/hw/devkit_wiring.png)
 
 ### Status LED
 
@@ -159,3 +162,6 @@ It uses **LittleFS** to store tag dumps, Wi‑Fi credentials, and key databases,
 - Default web credentials are `admin` / `admin` and the default AP password is `nfctool123` (change before any real deployment).
 
 - For production, lower `LOG_LEVEL`, disable `DEBUG_SKIP_AUTH`, and review filesystem usage to avoid exposing NFC dumps/keys.
+
+- **This software is provided as is; there is no warranty on its functionality, and the user is solely responsible for any damage or corruption of data.**
+**Any help is appreciated; you are welcome to contribute.**
