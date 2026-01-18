@@ -27,7 +27,7 @@ It uses **LittleFS** to store tag dumps, Wi‑Fi credentials, and key databases,
 
 - 📶 Wi‑Fi manager with saved credentials plus fallback AP mode.
 
-- 🌐 Async web UI (ESPAsyncWebServer/AsyncTCP) with session/login support.
+- 🌐 Async web UI (ESPAsyncWebServer/AsyncTCP) with session/login support. [Screenshots](https://github.com/Senape3000/nfc-tool_ESP32/tree/main/docs/screenshot)
 
 - 🧾 Serial console commands (type `help`) running in a dedicated FreeRTOS task.
 
