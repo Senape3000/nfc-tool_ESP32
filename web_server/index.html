@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ESP32 Control Panel</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- Background Effects -->
+  <div class="scanline"></div>
+  <div class="grid-bg"></div>
+
+  <div class="container">
+    <!-- Header -->
+    <header class="header">
+      <h1 class="title">ESP32 CONTROL PANEL<span class="cursor">_</span></h1>
+      <div class="status-bar">
+        <div class="status-item">
+          <span class="status-label">LittleFS:</span>
+          <span id="littlefs-status" class="status-value">ONLINE</span>
+        </div>
+        <span class="status-divider">|</span>
+        <div class="status-item">
+          <span class="status-label">WiFi:</span>
+          <span id="wifi-mode" class="status-value">STATION</span>
+        </div>
+        <span class="status-divider">|</span>
+        <div class="status-item">
+          <span id="uptime" class="status-value">Uptime: 00:00:00</span>
+        </div>
+           <span class="status-divider">|</span>
+        <div class="status-item">
+            <button id="btn-logout" class="btn-logout" title="Logout">
+                <span>🚪</span> LOGOUT
+            </button>
+        </div>
+      </div>
+    </header>
+
+    <!-- Tabs Navigation -->
+    <ul class="tabs">
+      <li class="tab active" data-tab="file-manager">
+        <span class="tab-icon">📁</span>
+        <span class="tab-text">FILE MANAGER</span>
+      </li>
+      <li class="tab" data-tab="nfc">
+        <span class="tab-icon">📡</span>
+        <span class="tab-text">NFC TOOL</span>
+    </li>
+      <li class="tab" data-tab="settings">
+        <span class="tab-icon">⚙️</span>
+        <span class="tab-text">SETTINGS</span>
+      </li>
+    </ul>
+
+    <!-- Tab Content -->
+    <div class="content">
+      <!-- FILE MANAGER TAB -->
+      <div id="file-manager" class="tab-content active">
+        <div class="panel">
+          <div class="panel-header">
+            <h2>> FILE_MANAGER</h2>
+            <div class="panel-actions">
+              <button id="btn-refresh" class="btn btn-small">↻ REFRESH</button>
+              <button id="btn-upload" class="btn btn-small">⬆ UPLOAD</button>
+              <input type="file" id="file-upload-input" style="display:none">
+              <button id="btn-new-file" class="btn btn-small">+ FILE</button>
+              <button id="btn-new-folder" class="btn btn-small">+ FOLDER</button>
+            </div>
+          </div>
+
+          <!-- Storage Info -->
+          <div class="storage-info">
+              <span class="storage-label">Storage:</span>
+              <div class="storage-bar">
+                  <div id="storage-bar-fill" class="storage-used" style="width: 0%"></div>
+              </div>
+              <span id="storage-text" class="storage-text">0 KB / 0 KB</span>
+          </div>
+
+          <!-- Breadcrumb Navigation -->
+          <div id="breadcrumb" class="breadcrumb">
+              <span class="breadcrumb-item active" data-path="/">🏠 Home</span>
+          </div>
+
+          <!-- File List -->
+          <div id="file-list" class="file-list">
+            <!-- Files will be loaded here -->
+          </div>
+        </div>
+      </div>
+
+      <!-- ✨ NFC TAB (placeholder - will be loaded dynamically) -->
+      <div id="nfc" class="tab-content">
+          <div class="loading">Loading NFC module...</div>
+      </div>
+
+      <!-- SETTINGS TAB -->
+      <div id="settings" class="tab-content">
+        <div class="settings-container">
+          <!-- WiFi Configuration -->
+          <div class="settings-group">
+            <h3>WiFi Configuration</h3>
+            <div class="input-group">
+              <label for="wifi-ssid">SSID</label>
+              <input type="text" id="wifi-ssid" class="text-input" placeholder="Enter WiFi SSID">
+            </div>
+            <div class="input-group">
+              <label for="wifi-pass">Password</label>
+              <input type="password" id="wifi-pass" class="text-input" placeholder="Enter WiFi Password">
+            </div>
+            <div class="input-group">
+              <label>Mode</label>
+              <div class="radio-group">
+                <label class="radio-label">
+                  <input type="radio" name="wifi-mode" value="station" checked>
+                  Station Mode (Connect to WiFi)
+                </label>
+                <label class="radio-label">
+                  <input type="radio" name="wifi-mode" value="ap">
+                  AP Mode (Create Access Point)
+                </label>
+              </div>
+            </div>
+            <button id="btn-save-wifi" class="btn">SAVE WIFI</button>
+            <button id="btn-clear-wifi" class="btn btn-danger">CLEAR WIFI DB</button>
+          </div>
+
+          <!-- System Settings -->
+          <div class="settings-group">
+            <h3>System</h3>
+            <div class="settings-row">
+              <span>Device Name:</span>
+              <input type="text" id="device-name" class="text-input" value="ESP32-Device" style="max-width: 200px;">
+            </div>
+            <div class="settings-row">
+              <span>Free Heap:</span>
+              <span id="free-heap">-- KB</span>
+            </div>
+            <div class="settings-row">
+              <span>Chip Model:</span>
+              <span id="chip-model">ESP32</span>
+            </div>
+            <button id="btn-save-settings" class="btn">SAVE SETTINGS</button>
+            <button id="btn-backup" class="btn">BACKUP DATA</button>
+            <button id="btn-reboot" class="btn btn-danger">REBOOT DEVICE</button>
+            <button id="btn-format-fs" class="btn btn-danger">FORMAT LITTLEFS</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+      <span>ESP32 LittleFS Manager</span>
+      <span class="footer-divider">|</span>
+      <span>v2.0</span>
+      <span class="footer-divider">|</span>
+      <span id="footer-ip">IP: --</span>
+    </footer>
+  </div>
+
+  <!-- Modal -->
+  <div id="modal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 id="modal-title">Modal Title</h3>
+        <button id="modal-close" class="modal-close">×</button>
+      </div>
+      <div id="modal-body" class="modal-body">
+        <!-- Modal content here -->
+      </div>
+      <div class="modal-footer">
+        <button id="modal-cancel" class="btn btn-secondary">CANCEL</button>
+        <button id="modal-confirm" class="btn">CONFIRM</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- File Editor Modal -->
+  <div id="editor-modal" class="modal editor-modal">
+      <div class="modal-content editor-content">
+          <!-- Header -->
+          <div class="modal-header editor-header">
+              <div class="editor-title-bar">
+                  <h3 id="editor-title">✏️ EDIT FILE</h3>
+                  <div class="editor-info">
+                      <span id="editor-path"></span>
+                      <span class="editor-divider">|</span>
+                      <span id="editor-size"></span>
+                  </div>
+              </div>
+              <button id="editor-close" class="modal-close">×</button>
+          </div>
+          
+          <!-- Find & Replace Panel -->
+          <div id="find-replace-panel" class="find-replace-panel hidden">
+              <div class="find-controls">
+                  <input type="text" id="find-input" placeholder="Find..." class="text-input">
+                  <button id="btn-find-prev" class="btn btn-small">▲</button>
+                  <button id="btn-find-next" class="btn btn-small">▼</button>
+                  <span id="find-count" class="find-count">0/0</span>
+              </div>
+              <div class="replace-controls">
+                  <input type="text" id="replace-input" placeholder="Replace..." class="text-input">
+                  <button id="btn-replace" class="btn btn-small">Replace</button>
+                  <button id="btn-replace-all" class="btn btn-small">Replace All</button>
+              </div>
+              <button id="close-find" class="btn-icon" title="Close">×</button>
+          </div>
+          
+          <!-- Editor Area -->
+          <div class="modal-body editor-body">
+              <div class="editor-container">
+                  <div class="line-numbers" id="line-numbers"></div>
+                  <textarea id="file-content" class="editor-textarea" spellcheck="false"></textarea>
+              </div>
+          </div>
+          
+          <!-- Status Bar -->
+          <div class="editor-status-bar">
+              <span id="editor-autosave-status">●</span>
+              <span id="editor-char-count">0 chars</span>
+              <span class="editor-divider">|</span>
+              <span id="editor-modified">Not modified</span>
+          </div>
+
+           <!-- Rename prompt -->
+          <div id="rename-prompt" class="rename-prompt" style="display: none;">
+              <div class="rename-title">RENAME FILE</div>
+              <input type="text" id="rename-input" class="rename-input" spellcheck="false">
+              <div id="rename-warning" class="rename-warning">⚠️ Extension changed!</div>
+              <div class="rename-actions">
+                  <button id="btn-save-rename" class="btn btn-small">SAVE</button>
+                  <button id="btn-discard-rename" class="btn btn-small btn-danger">DISCARD</button>
+              </div>
+          </div>
+
+          <!-- Footer Actions -->
+          <div class="modal-footer editor-footer">
+              <button id="btn-find-toggle" class="btn btn-secondary">🔍 FIND</button>
+              <button id="btn-diff-view" class="btn btn-secondary">📊 SHOW DIFF</button>
+              <button id="btn-rename-file" class="btn btn-secondary">✏️ RENAME</button>
+              <button id="btn-discard" class="btn btn-danger">❌ DISCARD</button>
+              <button id="btn-save" class="btn">💾 SAVE</button>
+          </div>
+      </div>
+  </div>
+
+  <!-- Diff View Modal -->
+  <div id="diff-modal" class="modal">
+      <div class="modal-content">
+          <div class="modal-header">
+              <h3>📊 CHANGES PREVIEW</h3>
+              <button id="diff-close" class="modal-close">×</button>
+          </div>
+          <div class="modal-body">
+              <div id="diff-content" class="diff-container"></div>
+          </div>
+          <div class="modal-footer">
+              <button id="btn-back-to-edit" class="btn btn-secondary">← BACK</button>
+              <button id="btn-save-from-diff" class="btn">💾 SAVE CHANGES</button>
+          </div>
+      </div>
+  </div><div id="compare-notification" class="compare-notification">
+      <div style="display:flex; align-items:center;">
+          <span style="font-size:1.5rem; margin-right:10px;">🔍</span>
+          <div>
+              <div class="compare-text">SELECT SECOND FILE</div>
+              <div style="font-size:0.8rem; color:var(--text-muted)">Comparing with: <span id="compare-source-name" class="compare-file-badge">filename.txt</span></div>
+          </div>
+      </div>
+      <button id="btn-cancel-compare" class="btn btn-small btn-secondary">CANCEL</button>
+  </div>
+
+  <div id="compare-modal" class="modal compare-modal">
+      <div class="modal-content">
+          <div class="modal-header">
+              <h3>⚔️ FILE COMPARISON</h3>
+              <button id="compare-close" class="modal-close">×</button>
+          </div>
+          
+          <div class="modal-body compare-body">
+              <div class="compare-pane">
+                  <div class="compare-pane-header" id="cmp-header-left">SOURCE</div>
+                  <div class="compare-scroller" id="cmp-scroll-left">
+                      </div>
+              </div>
+              
+              <div class="compare-pane">
+                  <div class="compare-pane-header" id="cmp-header-right">TARGET</div>
+                  <div class="compare-scroller" id="cmp-scroll-right">
+                      </div>
+              </div>
+          </div>
+          
+          <div class="modal-footer">
+              <div style="margin-right: auto; font-size: 0.8rem; color: var(--text-dim);">
+                  <span style="color:var(--warning)">●</span> Differences
+                  <span style="color:var(--text-primary); margin-left:10px;">●</span> Identical
+              </div>
+              <button id="btn-close-compare" class="btn">CLOSE</button>
+          </div>
+      </div>
+  </div>
+
+  <script src="app.js"></script>
+  <script src="nfc-app.js"></script>
+</body>
+</html>
