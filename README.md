@@ -1,5 +1,5 @@
 # ESP32 NFC Tool
-
+![MainPage](https://github.com/Senape3000/nfc-tool_ESP32/blob/main/docs/screenshot/main_page.PNG)
 > Firmware for **ESP32 DevKit V1** that turns the board into a Wi‑Fi enabled NFC tag reader/writer with a web UI and a serial console. 
 
 ![PlatformIO](https://img.shields.io/badge/PlatformIO-ready-blue)  
