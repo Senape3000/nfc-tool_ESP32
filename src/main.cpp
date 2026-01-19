@@ -93,7 +93,7 @@ void setup() {
     LOG_DEBUG("FLASH", "Auto-format on fail: %s", 
               LITTLEFS_FORMAT_ON_FAIL ? "enabled" : "disabled");
     
-    if (!LittleFS.begin(LITTLEFS_FORMAT_ON_FAIL)) {
+    if(!LittleFS.begin(LITTLEFS_FORMAT_ON_FAIL, "/littlefs", LITTLEFS_MAX_OPEN_FILES, "littlefs")) {
         LOG_ERROR("FLASH", "Mount failed with current settings");
         
         // If auto-format was disabled, offer manual recovery
