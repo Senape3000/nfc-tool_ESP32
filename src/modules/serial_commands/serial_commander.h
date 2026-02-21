@@ -3,6 +3,7 @@
 #include <Arduino.h>
 #include "modules/wifi/wifi_manager.h"
 #include "modules/rfid/nfc_manager.h"
+#include "modules/nRF/nrf_jammer.h"
 #include "config.h"
 #include "logger.h"
 
@@ -29,8 +30,9 @@ public:
      * @brief Construct SerialCommander with manager references
      * @param wifi Reference to WiFiManager instance
      * @param nfc Reference to NFCManager instance
+     * @param nrf Reference to NrfJammer instance
      */
-    SerialCommander(WiFiManager& wifi, NFCManager& nfc);
+    SerialCommander(WiFiManager& wifi, NFCManager& nfc, NrfJammer& nrf);
 
     /**
      * @brief Process incoming serial commands
@@ -103,6 +105,7 @@ private:
     
     WiFiManager& _wifi;      // Reference to WiFi manager
     NFCManager& _nfc;        // Reference to NFC manager
+    NrfJammer& _nrf;         // Reference to nRF jammer
     bool _enabled;           // Command processing enabled flag
 
     // ============================================
@@ -149,6 +152,20 @@ private:
      * - heap: Show free heap memory
      */
     void handleSystemCommands(const String& subcmd);
+
+    /**
+     * @brief Handle nRF jammer commands
+     * @param subcmd Subcommand and arguments
+     * 
+     * Supported subcommands:
+     * - status: Show radio and jammer status
+     * - start [mode]: Start jammer (full/wifi/ble/bt/zigbee/drone/...)
+     * - stop: Stop jammer
+     * - modes: List available modes
+     * - config: Show current mode config
+     * - set pa|rate|dwell|flood <value>: Modify config
+     */
+    void handleNrfCommands(const String& subcmd);
 
     /**
      * @brief Display command reference

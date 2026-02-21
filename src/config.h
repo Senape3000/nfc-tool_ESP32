@@ -53,6 +53,26 @@
 #define LED_PIN             2       ///< Built-in LED on most ESP32 boards
 #define LED_ACTIVE_LOW      false   ///< Set true if LED is active LOW (cathode to GPIO)
 
+/**
+ * @brief nRF24L01+ Module Pins (E01-ML01DP5 PA+LNA)
+ * Uses HSPI bus to avoid conflicts with I2C (PN532)
+ *
+ * E01-ML01DP5 pinout → ESP32 WROOM:
+ *   VCC  → 3.3V
+ *   GND  → GND
+ *   CE   → GPIO 4
+ *   CSN  → GPIO 5
+ *   SCK  → GPIO 14  (HSPI CLK)
+ *   MISO → GPIO 12  (HSPI MISO)
+ *   MOSI → GPIO 13  (HSPI MOSI)
+ *   IRQ  → not connected (not used)
+ */
+#define NRF_CE_PIN          4       ///< nRF24 Chip Enable (active HIGH)
+#define NRF_CSN_PIN         5       ///< nRF24 SPI Chip Select (active LOW)
+#define NRF_SCK_PIN         14      ///< nRF24 SPI Clock (HSPI)
+#define NRF_MISO_PIN        12      ///< nRF24 SPI MISO (HSPI)
+#define NRF_MOSI_PIN        13      ///< nRF24 SPI MOSI (HSPI)
+
 
 // ========================================
 // WiFi CONFIGURATION

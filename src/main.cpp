@@ -24,6 +24,7 @@
 #include "modules/serial_commands/serial_commander.h"
 #include "modules/rfid/nfc_manager.h"
 #include "modules/rfid/mifare_keys_manager.h"
+#include "modules/nRF/nrf_jammer.h"
 
 // ========================================
 // GLOBAL OBJECTS
@@ -33,9 +34,10 @@ LedManager ledMgr;
 WiFiManager wifiMgr;
 NFCManager nfcMgr;
 MifareKeysManager mfkMgr;
+NrfJammer nrfJammer;
 AsyncWebServer server(WEB_SERVER_PORT);
 WebServerHandler webHandler(server, wifiMgr, nfcMgr);
-SerialCommander commander(wifiMgr, nfcMgr);
+SerialCommander commander(wifiMgr, nfcMgr, nrfJammer);
 
 // ========================================
 // TASK HANDLES
@@ -233,6 +235,16 @@ void setup() {
     } else {
         LOG_INFO("NFC", "PN532 initialized successfully");
         LOG_DEBUG("NFC", "Firmware version checked");
+    }
+
+    // ====== NRF24L01+ INITIALIZATION ======
+    LOG_INFO("NRF", "Initializing nRF24L01+ module...");
+    if (!nrfJammer.begin()) {
+        LOG_WARN("NRF", "nRF24L01+ not detected - jammer unavailable");
+        LOG_WARN("NRF", "Check wiring: CE=%d, CSN=%d, SCK=%d, MISO=%d, MOSI=%d",
+                 NRF_CE_PIN, NRF_CSN_PIN, NRF_SCK_PIN, NRF_MISO_PIN, NRF_MOSI_PIN);
+    } else {
+        LOG_INFO("NRF", "nRF24L01+ initialized successfully");
     }
 
     // ====== SETUP COMPLETE ======

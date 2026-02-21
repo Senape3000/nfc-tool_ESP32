@@ -1,8 +1,8 @@
 #include "serial_commander.h"
 #include <LittleFS.h>
 
-SerialCommander::SerialCommander(WiFiManager& wifi, NFCManager& nfc)
-    : _wifi(wifi), _nfc(nfc), _enabled(true) 
+SerialCommander::SerialCommander(WiFiManager& wifi, NFCManager& nfc, NrfJammer& nrf)
+    : _wifi(wifi), _nfc(nfc), _nrf(nrf), _enabled(true) 
 {
     LOG_DEBUG("CMD", "SerialCommander initialized");
 }
@@ -43,6 +43,9 @@ void SerialCommander::handleCommands() {
     }
     else if (mainCmd == "system" || mainCmd == "sys") {
         handleSystemCommands(subCmd);
+    }
+    else if (mainCmd == "nrf") {
+        handleNrfCommands(subCmd);
     }
     else if (mainCmd == "help" || mainCmd == "?") {
         showHelp();
@@ -509,6 +512,96 @@ void SerialCommander::handleSystemCommands(const String& subcmd) {
 }
 
 // ============================================
+// NRF JAMMER COMMANDS
+// ============================================
+
+void SerialCommander::handleNrfCommands(const String& subcmd) {
+    // Tokenize: <action> <rest...>
+    String trimmed = subcmd;
+    trimmed.trim();
+
+    if (trimmed.isEmpty() || trimmed == "status") {
+        _nrf.printStatus();
+        return;
+    }
+
+    int sp = trimmed.indexOf(' ');
+    String action = (sp >= 0) ? trimmed.substring(0, sp) : trimmed;
+    String rest = (sp >= 0) ? trimmed.substring(sp + 1) : "";
+    action.trim();
+    rest.trim();
+
+    if (action == "stop") {
+        _nrf.stop();
+        return;
+    }
+
+    if (action == "modes" || action == "list") {
+        _nrf.printModes();
+        return;
+    }
+
+    if (action == "config" || action == "cfg") {
+        _nrf.printConfig();
+        return;
+    }
+
+    if (action == "set") {
+        // Format: set <pa|rate|dwell|flood> <value>
+        int sp2 = rest.indexOf(' ');
+        if (sp2 <= 0) {
+            Serial.println("Usage: nrf set <pa|rate|dwell|flood> <value>");
+            return;
+        }
+        String param = rest.substring(0, sp2);
+        String valStr = rest.substring(sp2 + 1);
+        param.trim();
+        valStr.trim();
+
+        int value = valStr.toInt();
+        if (param == "pa") {
+            _nrf.setPaLevel((uint8_t)value);
+        } else if (param == "rate") {
+            _nrf.setDataRate((uint8_t)value);
+        } else if (param == "dwell") {
+            _nrf.setDwellTime((uint16_t)value);
+        } else if (param == "flood") {
+            _nrf.setFlooding((uint8_t)value);
+        } else {
+            Serial.println("Unknown parameter. Use: pa, rate, dwell, flood");
+        }
+        return;
+    }
+
+    if (action == "start") {
+        if (!_nrf.isRadioReady()) {
+            Serial.println("[NRF] Radio not initialized. Check wiring and restart.");
+            return;
+        }
+
+        NrfJamMode mode = NRF_JAM_FULL;
+        if (!rest.isEmpty()) {
+            mode = NrfJammer::parseModeByName(rest);
+        }
+        _nrf.start(mode);
+        return;
+    }
+
+    // Unknown subcommand
+    LOG_DEBUG("CMD", "Unknown nrf subcommand: '%s'", subcmd.c_str());
+    Serial.println("\nnRF Commands:");
+    Serial.println("  nrf status           - Radio & jammer status");
+    Serial.println("  nrf start [mode]     - Start jammer");
+    Serial.println("  nrf stop             - Stop jammer");
+    Serial.println("  nrf modes            - List available modes");
+    Serial.println("  nrf config           - Show current config");
+    Serial.println("  nrf set pa <0-3>     - Set PA level");
+    Serial.println("  nrf set rate <0-2>   - Set data rate");
+    Serial.println("  nrf set dwell <ms>   - Set dwell time");
+    Serial.println("  nrf set flood <0|1>  - Set strategy (CW/Flood)");
+}
+
+// ============================================
 // HELP DISPLAY
 // ============================================
 
@@ -545,6 +638,17 @@ void SerialCommander::showHelp() {
     Serial.println("\nGeneral:");
     Serial.println("  clear                - Clear terminal");
     Serial.println("  help                 - Show this message");
+    
+    Serial.println("\nnRF Jammer Commands:");
+    Serial.println("  nrf status           - Radio & jammer status");
+    Serial.println("  nrf start [mode]     - Start jammer (default: full)");
+    Serial.println("  nrf stop             - Stop jammer");
+    Serial.println("  nrf modes            - List available modes");
+    Serial.println("  nrf config           - Show current config");
+    Serial.println("  nrf set pa <0-3>     - Set PA level");
+    Serial.println("  nrf set rate <0-2>   - Set data rate");
+    Serial.println("  nrf set dwell <ms>   - Set dwell time");
+    Serial.println("  nrf set flood <0|1>  - Set strategy");
     Serial.println("========================================\n");
 }
 
