@@ -37,15 +37,14 @@
  * @brief Minimum log level to print
  * 
  * Set in platformio.ini with build_flags:
- *   -DLOG_LEVEL=5  (development)
- *   -DLOG_LEVEL=4   (production)
- *   -DLOG_LEVEL=0   (release - disable all logging)
+ *   -DMY_ESP_LOG_LEVEL=5  (development)
+ *   -DMY_ESP_LOG_LEVEL=4   (production)
+ *   -DMY_ESP_LOG_LEVEL=0   (release - disable all logging)
  *   (0=NONE, 1=CRIT, 2=ERR, 3=WARN, 4=INFO, 5=DEBUG, 6=VERBOSE)
  */
 
-#ifndef LOG_LEVEL
-    #define LOG_LEVEL 3 
-    #warning "LOG LEVEL NOT DEFINED, USING 3"
+#ifndef MY_ESP_LOG_LEVEL
+    #define MY_ESP_LOG_LEVEL 5
 #endif
 
 /**
@@ -79,13 +78,13 @@
 // LOG LEVELS
 // ========================================
 
-#define LOG_LEVEL_NONE     0
-#define LOG_LEVEL_CRITICAL 1
-#define LOG_LEVEL_ERROR    2
-#define LOG_LEVEL_WARN     3
-#define LOG_LEVEL_INFO     4
-#define LOG_LEVEL_DEBUG    5
-#define LOG_LEVEL_VERBOSE  6
+#define MY_ESP_LOG_LEVEL_NONE     0
+#define MY_ESP_LOG_LEVEL_CRITICAL 1
+#define MY_ESP_LOG_LEVEL_ERROR    2
+#define MY_ESP_LOG_LEVEL_WARN     3
+#define MY_ESP_LOG_LEVEL_INFO     4
+#define MY_ESP_LOG_LEVEL_DEBUG    5
+#define MY_ESP_LOG_LEVEL_VERBOSE  6
 typedef int LogLevel;
 
 // ========================================
@@ -133,9 +132,9 @@ typedef int LogLevel;
  * 
  * Example: LOG_CRITICAL("SYSTEM", "Out of memory! Free: %d", ESP.getFreeHeap());
  */
-#if LOG_LEVEL >= LOG_LEVEL_CRITICAL
+#if MY_ESP_LOG_LEVEL >= MY_ESP_LOG_LEVEL_CRITICAL
     #define LOG_CRITICAL(module, format, ...) \
-        Logger::log(LOG_LEVEL_CRITICAL, module, format, ##__VA_ARGS__)
+        Logger::log(MY_ESP_LOG_LEVEL_CRITICAL, module, format, ##__VA_ARGS__)
 #else
     #define LOG_CRITICAL(module, format, ...) ((void)0)
 #endif
@@ -145,9 +144,9 @@ typedef int LogLevel;
  * 
  * Example: LOG_ERROR("NFC", "PN532 timeout after %d ms", timeout);
  */
-#if LOG_LEVEL >= LOG_LEVEL_ERROR
+#if MY_ESP_LOG_LEVEL >= MY_ESP_LOG_LEVEL_ERROR
     #define LOG_ERROR(module, format, ...) \
-        Logger::log(LOG_LEVEL_ERROR, module, format, ##__VA_ARGS__)
+        Logger::log(MY_ESP_LOG_LEVEL_ERROR, module, format, ##__VA_ARGS__)
 #else
     #define LOG_ERROR(module, format, ...) ((void)0)
 #endif
@@ -157,9 +156,9 @@ typedef int LogLevel;
  * 
  * Example: LOG_WARN("WIFI", "Weak signal: %d dBm", rssi);
  */
-#if LOG_LEVEL >= LOG_LEVEL_WARN
+#if MY_ESP_LOG_LEVEL >= MY_ESP_LOG_LEVEL_WARN
     #define LOG_WARN(module, format, ...) \
-        Logger::log(LOG_LEVEL_WARN, module, format, ##__VA_ARGS__)
+        Logger::log(MY_ESP_LOG_LEVEL_WARN, module, format, ##__VA_ARGS__)
 #else
     #define LOG_WARN(module, format, ...) ((void)0)
 #endif
@@ -169,9 +168,9 @@ typedef int LogLevel;
  * 
  * Example: LOG_INFO("SETUP", "WiFi connected to %s", WiFi.SSID().c_str());
  */
-#if LOG_LEVEL >= LOG_LEVEL_INFO
+#if MY_ESP_LOG_LEVEL >= MY_ESP_LOG_LEVEL_INFO
     #define LOG_INFO(module, format, ...) \
-        Logger::log(LOG_LEVEL_INFO, module, format, ##__VA_ARGS__)
+        Logger::log(MY_ESP_LOG_LEVEL_INFO, module, format, ##__VA_ARGS__)
 #else
     #define LOG_INFO(module, format, ...) ((void)0)
 #endif
@@ -181,9 +180,9 @@ typedef int LogLevel;
  * 
  * Example: LOG_DEBUG("I2C", "Read block %d: 0x%02X", blockNum, data);
  */
-#if LOG_LEVEL >= LOG_LEVEL_DEBUG
+#if MY_ESP_LOG_LEVEL >= MY_ESP_LOG_LEVEL_DEBUG
     #define LOG_DEBUG(module, format, ...) \
-        Logger::log(LOG_LEVEL_DEBUG, module, format, ##__VA_ARGS__)
+        Logger::log(MY_ESP_LOG_LEVEL_DEBUG, module, format, ##__VA_ARGS__)
 #else
     #define LOG_DEBUG(module, format, ...) ((void)0)
 #endif
@@ -193,9 +192,9 @@ typedef int LogLevel;
  * 
  * Example: LOG_VERBOSE("NFC", "Dump: %s", hexDump);
  */
-#if LOG_LEVEL >= LOG_LEVEL_VERBOSE
+#if MY_ESP_LOG_LEVEL >= MY_ESP_LOG_LEVEL_VERBOSE
     #define LOG_VERBOSE(module, format, ...) \
-        Logger::log(LOG_LEVEL_VERBOSE, module, format, ##__VA_ARGS__)
+        Logger::log(MY_ESP_LOG_LEVEL_VERBOSE, module, format, ##__VA_ARGS__)
 #else
     #define LOG_VERBOSE(module, format, ...) ((void)0)
 #endif
@@ -212,7 +211,7 @@ typedef int LogLevel;
  *   uint8_t data[16];
  *   LOG_HEX_DUMP("NFC", data, 16, "Tag UID");
  */
-#if LOG_LEVEL >= LOG_LEVEL_DEBUG
+#if MY_ESP_LOG_LEVEL >= MY_ESP_LOG_LEVEL_DEBUG
     #define LOG_HEX_DUMP(module, data, len, label) \
         Logger::hexDump(module, (const uint8_t*)data, len, label)
 #else
@@ -257,27 +256,27 @@ public:
         const char* levelStr = "???";
 
         switch (level) {
-            case LOG_LEVEL_CRITICAL:
+            case MY_ESP_LOG_LEVEL_CRITICAL:
                 color = COLOR_BOLD_RED;
                 levelStr = "CRIT";
                 break;
-            case LOG_LEVEL_ERROR:
+            case MY_ESP_LOG_LEVEL_ERROR:
                 color = COLOR_RED;
                 levelStr = "ERR ";
                 break;
-            case LOG_LEVEL_WARN:
+            case MY_ESP_LOG_LEVEL_WARN:
                 color = COLOR_BOLD_YELLOW;
                 levelStr = "WARN";
                 break;
-            case LOG_LEVEL_INFO:
+            case MY_ESP_LOG_LEVEL_INFO:
                 color = COLOR_GREEN;
                 levelStr = "INFO";
                 break;
-            case LOG_LEVEL_DEBUG:
+            case MY_ESP_LOG_LEVEL_DEBUG:
                 color = COLOR_CYAN;
                 levelStr = "DBG ";
                 break;
-            case LOG_LEVEL_VERBOSE:
+            case MY_ESP_LOG_LEVEL_VERBOSE:
                 color = COLOR_GRAY;
                 levelStr = "VERB";
                 break;
@@ -350,21 +349,42 @@ public:
     static void begin() {
         Serial.println();
         LOG_INFO("LOGGER", "Logging system initialized");
-        LOG_INFO("LOGGER", "Level: %s", getLevelName((LogLevel)LOG_LEVEL));
+        LOG_INFO("LOGGER", "Level: %s", getLevelName((LogLevel)MY_ESP_LOG_LEVEL));
         LOG_INFO("LOGGER", "Colors: %s", LOG_COLORS_ENABLED ? "enabled" : "disabled");
         LOG_INFO("LOGGER", "Timestamp: %s", LOG_TIMESTAMP_ENABLED ? "enabled" : "disabled");
         Serial.println();
     }
 
+    /**
+     * @brief Self-test helper: directly prints compiled log level and emits
+     * messages at all levels using direct Logger::log() (bypasses macros)
+     * Useful to verify what actually appears on Serial regardless of macro
+     * filtering during compilation.
+     */
+    static void selfTest() {
+        Serial.println();
+        Serial.printf("[LOGGER-SELFTEST] LOG_COLORS_ENABLED = %d, LOG_TIMESTAMP_ENABLED = %d\n",
+                      (int)LOG_COLORS_ENABLED, (int)LOG_TIMESTAMP_ENABLED);
+
+        // Emit messages at all levels using direct calls
+        Logger::log(MY_ESP_LOG_LEVEL_CRITICAL, "SELFTEST", "CRITICAL test message");
+        Logger::log(MY_ESP_LOG_LEVEL_ERROR, "SELFTEST", "ERROR test message");
+        Logger::log(MY_ESP_LOG_LEVEL_WARN, "SELFTEST", "WARN test message");
+        Logger::log(MY_ESP_LOG_LEVEL_INFO, "SELFTEST", "INFO test message");
+        Logger::log(MY_ESP_LOG_LEVEL_DEBUG, "SELFTEST", "DEBUG test message");
+        Logger::log(MY_ESP_LOG_LEVEL_VERBOSE, "SELFTEST", "VERBOSE test message");
+        Serial.println();
+    }
+
     static const char* getLevelName(int level) {
     switch (level) {
-        case LOG_LEVEL_NONE: return "NONE";
-        case LOG_LEVEL_CRITICAL: return "CRITICAL";
-        case LOG_LEVEL_ERROR: return "ERROR";
-        case LOG_LEVEL_WARN: return "WARN";
-        case LOG_LEVEL_INFO: return "INFO";
-        case LOG_LEVEL_DEBUG: return "DEBUG";
-        case LOG_LEVEL_VERBOSE: return "VERBOSE";
+        case MY_ESP_LOG_LEVEL_NONE: return "NONE";
+        case MY_ESP_LOG_LEVEL_CRITICAL: return "CRITICAL";
+        case MY_ESP_LOG_LEVEL_ERROR: return "ERROR";
+        case MY_ESP_LOG_LEVEL_WARN: return "WARN";
+        case MY_ESP_LOG_LEVEL_INFO: return "INFO";
+        case MY_ESP_LOG_LEVEL_DEBUG: return "DEBUG";
+        case MY_ESP_LOG_LEVEL_VERBOSE: return "VERBOSE";
         default: return "UNKNOWN";
     }
 }

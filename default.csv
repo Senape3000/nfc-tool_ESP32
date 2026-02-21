@@ -1,5 +1,0 @@
-# Name,      Type,  SubType,   Offset,   Size,      Flags
-nvs,         data,  nvs,       0x9000,   0x6000,
-phy_init,    data,  phy,       0xf000,   0x1000,
-app0,        app,   ota_0,     0x10000,  0x1c0000,
-littlefs,    data,  littlefs,  0x1d0000, 0x230000,

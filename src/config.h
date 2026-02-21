@@ -115,6 +115,70 @@
 
 
 // ========================================
+// BLUETOOTH CONFIGURATION
+// ========================================
+
+/**
+ * @brief Bluetooth (BLE) Settings
+ */
+#define BT_ENABLED                  true        ///< Enable Bluetooth Low Energy
+#define BT_DEVICE_NAME              "ESP32-NFC-Tool"  ///< BLE device name
+#define BT_MAX_CLIENTS              2           ///< Maximum BLE connections
+#define BT_ADVERTISING_INTERVAL_MIN   48          // 30ms minimum (48 * 0.625ms units)
+#define BT_ADVERTISING_INTERVAL_MAX   96          // 60ms maximum (96 * 0.625ms units)
+#define BT_ADVERTISING_INTERVAL       48          // Default: 30ms for fast discovery
+#define BT_CONNECTION_TIMEOUT_MS    30000       ///< Connection timeout
+
+/**
+ * @brief BLE Connection Parameters
+ */
+#define BT_CONNECTION_INTERVAL_MIN    24          // 30ms (24 * 1.25ms)
+#define BT_CONNECTION_INTERVAL_MAX    40          // 50ms (40 * 1.25ms)
+#define BT_CONNECTION_SLAVE_LATENCY   0           // No latency
+#define BT_CONNECTION_SUPERVISION_TIMEOUT 400     // 4s (400 * 10ms)
+#define BT_ADVERTISING_TIMEOUT_MS     180000      // 3 minutes advertising timeout
+
+/**
+ * @brief BLE Service & Characteristics
+ * Using Nordic UART Service (NUS) for compatibility
+ */
+#define BT_NUS_SERVICE_UUID         "6E400001-B5A3-F393-E0A9-E50E24DCCA9E"
+#define BT_NUS_RX_CHAR_UUID         "6E400002-B5A3-F393-E0A9-E50E24DCCA9E"  // RX (receive)
+#define BT_NUS_TX_CHAR_UUID         "6E400003-B5A3-F393-E0A9-E50E24DCCA9E"  // TX (transmit)
+
+/**
+ * @brief BLE Data Transfer Settings
+ */
+#define BT_MAX_MTU_SIZE             512         ///< Maximum MTU size for data transfer
+#define BT_JSON_BUFFER_SIZE         2048        ///< JSON parsing buffer size
+#define BT_RESPONSE_TIMEOUT_MS      5000        ///< Response timeout
+#define BT_CHUNK_SIZE               200         ///< Chunk size for large transfers
+
+/**
+ * @brief BLE Security & Validation
+ */
+#define BT_ENABLE_CHECKSUM          true        ///< Enable SHA-256 checksum for large transfers
+#define BT_CHECKSUM_THRESHOLD       1024        ///< Use checksum for transfers > this size (bytes)
+#define BT_MAX_COMMAND_SIZE         512         ///< Maximum command size
+#define BT_MAX_RESPONSE_SIZE        4096        ///< Maximum response size
+
+/**
+ * @brief Bluetooth Task Configuration
+ */
+#define BT_TASK_ENABLED             true        ///< Enable Bluetooth task
+#define BT_TASK_STACK_SIZE          12288       ///< Stack size for Bluetooth task (increased for JSON)
+#define BT_TASK_PRIORITY            2           ///< Priority (higher than serial)
+#define BT_TASK_CORE                1           ///< CPU core (same as serial)
+#define BT_TASK_INTERVAL_MS         50          ///< Task polling interval
+
+/**
+ * @brief LED Status Indicators
+ */
+#define BT_LED_CONNECTED_PATTERN    true        ///< LED solid when connected
+#define BT_LED_ADVERTISING_PATTERN  true        ///< LED blinking when advertising
+#define BT_LED_PROCESSING_PATTERN  true        ///< LED pulse when processing
+
+// ========================================
 // WEB SERVER CONFIGURATION
 // ========================================
 

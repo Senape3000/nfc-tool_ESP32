@@ -401,6 +401,16 @@ public:
      */
     const uint8_t* getTagDataPointer(const TagInfo& info) const;
 
+    /**
+     * @brief Hardware reset of PN532 and complete reinitialization
+     * @return Result with success/message/code
+     * 
+     * Performs hardware reset via dedicated pin, destroys handlers
+     * and resets initialization state. Requires begin() call
+     * after reset to reuse the manager.
+     */
+    Result hardwareReset();
+
 private:
     // ============================================
     // PROTOCOL HANDLERS
