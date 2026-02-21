@@ -22,6 +22,7 @@
 #include "modules/led/led_manager.h"
 #include "modules/webserver/webserver_handler.h"
 #include "modules/serial_commands/serial_commander.h"
+#include "modules/bluetooth/bluetooth_manager.h"
 #include "modules/rfid/nfc_manager.h"
 #include "modules/rfid/mifare_keys_manager.h"
 
@@ -36,12 +37,14 @@ MifareKeysManager mfkMgr;
 AsyncWebServer server(WEB_SERVER_PORT);
 WebServerHandler webHandler(server, wifiMgr, nfcMgr);
 SerialCommander commander(wifiMgr, nfcMgr);
+BluetoothManager btMgr(wifiMgr, nfcMgr, ledMgr);
 
 // ========================================
 // TASK HANDLES
 // ========================================
 
 TaskHandle_t serialTaskHandle = NULL;
+TaskHandle_t bluetoothTaskHandle = NULL;
 
 // ========================================
 // TASK: SERIAL COMMANDER (Core 1)
@@ -65,6 +68,29 @@ void serialCommandTask(void* parameter) {
     vTaskDelete(NULL);
 }
 
+// ========================================
+// TASK: BLUETOOTH MANAGER (Core 1)
+// ========================================
+/**
+ * @brief Bluetooth command handler task
+ * @param parameter Unused task parameter
+ * 
+ * Runs on Core 1 to avoid blocking Core 0 (WiFi/WebServer).
+ * Handles Bluetooth LE commands from Bruce device with 50ms polling interval.
+ * Provides secure data transfers and NFC operation control.
+ */
+void bluetoothCommandTask(void* parameter) {
+    LOG_INFO("TASK", "Bluetooth Commander started on Core %d", xPortGetCoreID());
+
+    for(;;) {
+        btMgr.handleCommands();
+        vTaskDelay(pdMS_TO_TICKS(BT_TASK_INTERVAL_MS));  // 50ms polling interval
+    }
+
+    // Should never reach here
+    vTaskDelete(NULL);
+}
+
 
 // ========================================
 // SETUP - ONE-TIME INITIALIZATION
@@ -78,7 +104,15 @@ void setup() {
 
     // Initialize logger
     Logger::begin();
-    LOG_INFO("LOGGER", "Level: %s", Logger::getLevelName((LogLevel)LOG_LEVEL));
+
+    // Quick diagnostics: print runtime configuration
+    Serial.printf("[DIAG] LOG_COLORS_ENABLED = %d, LOG_TIMESTAMP_ENABLED = %d\n",
+                  (int)LOG_COLORS_ENABLED, (int)LOG_TIMESTAMP_ENABLED);
+
+    // Emit self-test messages at all levels (bypasses macro filtering)
+    Logger::selfTest();
+
+    LOG_INFO("LOGGER", "Level: %s", Logger::getLevelName((LogLevel)MY_ESP_LOG_LEVEL));
     LOG_INFO("SETUP", "ESP32 NFC Tool v1.0 - Build %s %s", __DATE__, __TIME__);
     LOG_INFO("SETUP", "Chip: %s, CPU Freq: %d MHz", ESP.getChipModel(), ESP.getCpuFreqMHz());
     LOG_INFO("SETUP", "Free Heap: %d bytes", ESP.getFreeHeap());
@@ -168,6 +202,24 @@ void setup() {
         LOG_WARN("WIFI", "Connection failed - operating in offline mode");
     }
 
+    // ====== BLUETOOTH INITIALIZATION ======
+    LOG_INFO("BT", "Initializing Bluetooth Manager...");
+    
+    #if BT_ENABLED
+    if (btMgr.begin()) {
+        LOG_INFO("BT", "Bluetooth Manager initialized successfully");
+        LOG_INFO("BT", "Device name: %s", BT_DEVICE_NAME);
+        LOG_INFO("BT", "Security level: %d", BT_ENABLE_CHECKSUM ? 1 : 0);
+    } else {
+        LOG_ERROR("BT", "Bluetooth Manager initialization failed");
+        LOG_WARN("BT", "Bluetooth operations will be unavailable");
+    }
+    #else
+    LOG_INFO("BT", "Bluetooth disabled in configuration");
+    #endif
+
+    delay(BOOT_DELAY_MS);
+
     // ====== SERIAL COMMANDER TASK ======
     LOG_INFO("TASK", "Creating Serial Commander task...");
 
@@ -187,6 +239,28 @@ void setup() {
     } else {
         LOG_ERROR("TASK", "Failed to create Serial Commander task!");
     }
+
+    #if BT_ENABLED && BT_TASK_ENABLED
+    // ====== BLUETOOTH COMMANDER TASK ======
+    LOG_INFO("TASK", "Creating Bluetooth Commander task...");
+
+    taskResult = xTaskCreatePinnedToCore(
+        bluetoothCommandTask,       // Task function
+        "BluetoothCmd",              // Task name (for debugging)
+        BT_TASK_STACK_SIZE,          // Stack size: 8KB
+        NULL,                        // Task parameters
+        BT_TASK_PRIORITY,            // Priority (2 = higher than serial)
+        &bluetoothTaskHandle,       // Task handle
+        BT_TASK_CORE                 // Core ID (1 = same as serial)
+    );
+
+    if (taskResult == pdPASS) {
+        LOG_INFO("TASK", "Bluetooth Commander task created on Core 1");
+        LOG_DEBUG("TASK", "Stack size: %d bytes, Priority: %d", BT_TASK_STACK_SIZE, BT_TASK_PRIORITY);
+    } else {
+        LOG_ERROR("TASK", "Failed to create Bluetooth Commander task!");
+    }
+    #endif
 
     // ====== WEB SERVER ======
     LOG_INFO("WEB", "Starting web server...");
@@ -241,8 +315,13 @@ void setup() {
     LOG_INFO("SETUP", "============================================");
     LOG_INFO("SETUP", "");
     LOG_INFO("SETUP", "Ready to accept commands:");
-    LOG_INFO("SETUP", "  - Web Interface: http://%s", WiFi.localIP().toString().c_str());
+    if (WiFi.status() == WL_CONNECTED) {
+        LOG_INFO("SETUP", "  - Web Interface: http://%s", WiFi.localIP().toString().c_str());
+    }
     LOG_INFO("SETUP", "  - Serial Commands: Type 'help' for command list");
+    #if BT_ENABLED
+    LOG_INFO("SETUP", "  - Bluetooth: %s (ready for Bruce device)", BT_DEVICE_NAME);
+    #endif
     LOG_INFO("SETUP", "");
     Serial.flush();
 }

@@ -1183,6 +1183,73 @@ NFCManager::Result NFCManager::deleteFile(String filename, Protocol protocol) {
     return {false, "Failed to delete file", -1};
 }
 
+// HARDWARE RESET
+NFCManager::Result NFCManager::hardwareReset() {
+    Result result{false, "", -1};
+    
+    LOG_INFO("NFC", "========================================");
+    LOG_INFO("NFC", "HARDWARE RESET PN532");
+    LOG_INFO("NFC", "========================================");
+    
+    // Step 1: Destroy existing handlers
+    // Clean up SRIX handler if allocated
+    if (_srix_handler) {
+        delete _srix_handler;
+        _srix_handler = nullptr;
+        LOG_DEBUG("NFC", "SRIX handler destroyed");
+    }
+    
+    // Clean up Mifare handler if allocated
+    if (_mifare_handler) {
+        delete _mifare_handler;
+        _mifare_handler = nullptr;
+        LOG_DEBUG("NFC", "Mifare handler destroyed");
+    }
+    
+    // Step 2: Reset internal state
+    // Mark manager as uninitialized (forces begin() call)
+    _initialized = false;
+    
+    // Clear protocol tracking
+    _current_protocol = PROTOCOL_UNKNOWN;
+    
+    // Clear loaded tag data
+    clearCurrentTag();
+    
+    LOG_DEBUG("NFC", "Internal state cleared");
+    
+    // Step 3: Hardware reset of PN532 via dedicated pin
+    LOG_INFO("NFC", "Applying hardware reset pulse...");
+    
+    // Configure reset pin as output (if not already done)
+    pinMode(PN532_RESET_PIN, OUTPUT);
+    
+    // Assert reset: pull LOW for 100ms
+    // (PN532 datasheet requires minimum 20ms, using 100ms for safety)
+    digitalWrite(PN532_RESET_PIN, LOW);
+    delay(100);
+    
+    // Release reset: return to HIGH
+    digitalWrite(PN532_RESET_PIN, HIGH);
+    
+    // Wait for chip stabilization
+    // PN532 requires ~400ms boot time after reset release
+    LOG_INFO("NFC", "Waiting for PN532 stabilization...");
+    delay(500);
+    
+    LOG_INFO("NFC", "========================================");
+    LOG_INFO("NFC", "RESET COMPLETE");
+    LOG_INFO("NFC", "Call begin() to reinitialize");
+    LOG_INFO("NFC", "========================================");
+    
+    result.success = true;
+    result.message = "Hardware reset completed. Call begin() to reinitialize.";
+    result.code = 0;
+    
+    return result;
+}
+
+
 // ============================================
 // UTILITY FUNCTIONS
 // ============================================
